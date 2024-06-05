@@ -8,3 +8,5 @@
 data_collection/pilot_study/v1/raw/prolific_export_660ec46c48a22a19510d9ee8.csv
 
 simulations/
+
+*.p
