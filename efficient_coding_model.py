@@ -231,6 +231,15 @@ if __name__ == "__main__":
     # if len(rating_data_emo) != len(rating_data_combined):
     #     print("Warning: rating_data_emo and rating_data_combined have different lengths")
 
+    # Filter for the specific duration:
+    # short_rating_data_phase1 = all_rating_data[all_rating_data['durationBlackScreen_phase1'] == 900][['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating', 'variance_rating', 'subject_id']]
+    # short_rating_data_phase2 = all_rating_data[all_rating_data['durationBlackScreen_phase2'] == 900][['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating', 'variance_rating', 'subject_id']]
+    # short_rating_data = pd.concat([short_rating_data_phase1.rename(columns={'rating_phase1': 'rating', 'durationBlackScreen_phase1': 'durationBlackScreen'}), short_rating_data_phase2.rename(columns={'rating_phase2': 'rating', 'durationBlackScreen_phase2': 'durationBlackScreen'})], ignore_index=True)
+
+    # long_rating_data_phase1 = all_rating_data[all_rating_data['durationBlackScreen_phase1'] == 2600][['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating', 'variance_rating', 'subject_id']]
+    # long_rating_data_phase2 = all_rating_data[all_rating_data['durationBlackScreen_phase2'] == 2600][['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating', 'variance_rating', 'subject_id']]
+    # long_rating_data = pd.concat([long_rating_data_phase1.rename(columns={'rating_phase1': 'rating', 'durationBlackScreen_phase1': 'durationBlackScreen'}), long_rating_data_phase2.rename(columns={'rating_phase2': 'rating', 'durationBlackScreen_phase2': 'durationBlackScreen'})], ignore_index=True)
+
     all_participant_ids = np.unique(rating_data_emo["subject_id"])
 
     # Use Manager to create a shared dictionary
