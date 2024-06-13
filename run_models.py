@@ -12,12 +12,20 @@ def main(run_choice=False, use_mock_data=False):
     # Define paths and other parameters
     main_path_rating_data = "data_collection/main_study/v1/rating_data.csv"
     main_path_choice_data = "data_collection/main_study/v1/choice_data.csv"
+    main_path_EC_outputs = "model_outputs/main_study/v2/outputs_EC_model_each_emotion/"
+    main_path_choice_outputs = "model_outputs/main_study/v2/outputs_choice_model_each_emotion/"
     name_file_posterior_distributions = f"main_study_{emotion}_{duration}_duration_posterior_distributions.p"
-    name_file_choice_model_outputs = "choice_model_outputs.pkl"
+    name_file_choice_model_outputs = f"main_study_{emotion}_choice_probs.p"
 
     if use_mock_data:
+        # we're using dataset for anxiety from 0VVMDMpWxwVD3Hivuk2kvCHyQXh2
         rating_data = pd.read_csv("data_collection/mock/rating_data.csv")
         choice_data = pd.read_csv("data_collection/mock/choice_data.csv")
+        main_path_EC_outputs = "model_outputs/mock/outputs_EC_model/"
+        main_path_choice_outputs = "model_outputs/mock/outputs_choice_model/"
+        name_file_posterior_distributions = f"mock_posterior_distributions.p"
+        name_file_choice_model_outputs = "mock_choice_probs.p"
+
     else:
         # Load data
         rating_data = pd.read_csv(main_path_rating_data)
@@ -63,7 +71,7 @@ def main(run_choice=False, use_mock_data=False):
         # Run models in parallel
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [executor.submit(run_efficient_coding_model, posterior_distributions_all_participants,
-                                       participant_id, rating_data)
+                                       participant_id, rating_data, use_mock_data)
                        for participant_id in all_participant_ids]
             for future in concurrent.futures.as_completed(futures):
                 try:
@@ -75,7 +83,7 @@ def main(run_choice=False, use_mock_data=False):
         posterior_distributions_all_participants = dict(posterior_distributions_all_participants)
 
         # Save the posterior distributions
-        with open(name_file_posterior_distributions, 'wb') as fp:
+        with open(main_path_EC_outputs + name_file_posterior_distributions, 'wb') as fp:
             pickle.dump(posterior_distributions_all_participants, fp)
 
         print("Processing posterior distributions completed and results saved successfully.")
@@ -99,7 +107,7 @@ def main(run_choice=False, use_mock_data=False):
             choice_results = dict(choice_results)
 
             # Save the posterior distributions
-            with open(name_file_choice_model_outputs, 'wb') as fp:
+            with open(main_path_choice_outputs + name_file_choice_model_outputs, 'wb') as fp:
                 pickle.dump(choice_results, fp)
 
             print("Processing choice model completed and results saved successfully.")
