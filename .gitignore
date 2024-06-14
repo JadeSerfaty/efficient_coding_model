@@ -12,3 +12,5 @@ simulations/
 *.p
 
 __pycache__/
+
+newenv/*
