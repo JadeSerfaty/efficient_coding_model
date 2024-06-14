@@ -11,7 +11,8 @@ def f_theano(v, mu, s):
 
 
 def f_inv(v_tilde, mu, s):
-    v_tilde = np.clip(v_tilde, 1e-8, 1 - 1e-8)
+    # v_tilde = np.clip(v_tilde, 1e-8, 1 - 1e-8)
+    v_tilde[(v_tilde < 1e-8) | (v_tilde > 1 - 1e-8)] = np.nan
     result = mu + s * np.log(v_tilde / (1 - v_tilde))
     return result
 
