@@ -1,5 +1,6 @@
 import pymc3 as pm
 from utils import *
+from math_utils import *
 
 def run_choice_model(participant_id, data, rating_data_emo, choice_data_emo, choice_results):
     pairs, observed_choices, choice_probs, mu_empirical, s_empirical = prepare_data_for_choice_model(data,

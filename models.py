@@ -1,15 +1,15 @@
 import pandas as pd
-import pickle
-import concurrent.futures
+from math_utils import *
 from efficient_coding_model import run_efficient_coding_model
 from choice_model import run_choice_model
-from multiprocessing import Manager
 from utils import *
+
+duration_mapping_dict = {"short": 900, "long": 2600}
 
 class ModelRunner:
     def __init__(self, emotion="anxiety", duration="long", use_mock_data=False, run_choice=False):
         self.emotion = emotion
-        self.duration = duration
+        self.duration = duration_mapping_dict[duration]
         self.use_mock_data = use_mock_data
         self.run_choice = run_choice
         self.main_path_rating_data = "data_collection/main_study/v1/rating_data.csv"
@@ -40,19 +40,18 @@ class ModelRunner:
         self.rating_data = self.rating_data[self.rating_data["emotionName"] == self.emotion].copy()
         self.choice_data = self.choice_data[self.choice_data["emotionName"] == self.emotion].copy()
 
-        if self.duration == "short":
-            rating_data_phase1 = self.rating_data[self.rating_data['durationBlackScreen_phase1'] == 900][
-                ['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating', 'variance_rating', 'subject_id']]
-            rating_data_phase2 = self.rating_data[self.rating_data['durationBlackScreen_phase2'] == 900][
-                ['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating', 'variance_rating', 'subject_id']]
-        elif self.duration == "long":
-            rating_data_phase1 = self.rating_data[self.rating_data['durationBlackScreen_phase1'] == 2600][
-                ['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating', 'variance_rating', 'subject_id']]
-            rating_data_phase2 = self.rating_data[self.rating_data['durationBlackScreen_phase2'] == 2600][
-                ['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating', 'variance_rating', 'subject_id']]
+        rating_data_phase1 = self.rating_data[self.rating_data['durationBlackScreen_phase1'] == self.duration][
+            ['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating',
+             'variance_rating', 'subject_id']]
+        rating_data_phase2 = self.rating_data[self.rating_data['durationBlackScreen_phase2'] == self.duration][
+            ['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating',
+             'variance_rating', 'subject_id']]
 
-        self.rating_data = pd.concat([rating_data_phase1.rename(columns={'rating_phase1': 'rating', 'durationBlackScreen_phase1': 'durationBlackScreen'}),
-                                      rating_data_phase2.rename(columns={'rating_phase2': 'rating', 'durationBlackScreen_phase2': 'durationBlackScreen'})], ignore_index=True)
+        self.rating_data = pd.concat([rating_data_phase1.rename(
+            columns={'rating_phase1': 'rating', 'durationBlackScreen_phase1': 'durationBlackScreen'}),
+            rating_data_phase2.rename(columns={'rating_phase2': 'rating',
+                                               'durationBlackScreen_phase2': 'durationBlackScreen'})],
+            ignore_index=True)
 
     def run_efficient_coding_models(self):
         all_participant_ids = np.unique(self.rating_data["subject_id"])
@@ -61,7 +60,9 @@ class ModelRunner:
             posterior_distributions_all_participants = manager.dict()
             # Run models in parallel
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                futures = [executor.submit(run_efficient_coding_model, posterior_distributions_all_participants, participant_id, self.rating_data, self.use_mock_data) for participant_id in all_participant_ids]
+                futures = [executor.submit(run_efficient_coding_model, posterior_distributions_all_participants,
+                                           participant_id, self.rating_data, self.use_mock_data) for participant_id in
+                           all_participant_ids]
                 for future in concurrent.futures.as_completed(futures):
                     try:
                         future.result()
@@ -81,7 +82,9 @@ class ModelRunner:
         with Manager() as manager:
             choice_results = manager.dict()
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                futures = [executor.submit(run_choice_model, participant_id, data, self.rating_data, self.choice_data, choice_results) for participant_id, data in posterior_distributions_all_participants.items()]
+                futures = [executor.submit(run_choice_model, participant_id, data, self.rating_data, self.choice_data,
+                                           choice_results) for participant_id, data in
+                           posterior_distributions_all_participants.items()]
                 for future in concurrent.futures.as_completed(futures):
                     try:
                         future.result()

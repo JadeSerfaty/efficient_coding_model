@@ -1,6 +1,7 @@
 import pymc3 as pm
 import pymc3.parallel_sampling as ps
-from utils import *
+from math_utils import *
+from utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
 
 
 def run_efficient_coding_model(posterior_distributions_all_participants, participant_id,
