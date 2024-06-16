@@ -1,6 +1,7 @@
 import pymc3 as pm
 import pymc3.parallel_sampling as ps
 from math_utils import *
+from scipy import stats
 from utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
 
 
@@ -61,18 +62,27 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
             # Check the convergence
             summary_stats = pm.summary(trace).round(2)
 
-            # Save posterior distributions for participant
-            posterior_distributions_all_participants[participant_id] = {
-                "summary_stats": summary_stats,
-                "trace": trace
-            }
-
             # Posterior Predictive Checks
             ppc = pm.sample_posterior_predictive(trace, var_names=["observed"])
 
             # Extract the predicted data
             predicted_data = ppc['observed']
-            posterior_distributions_all_participants[participant_id]["predicted_data"] = predicted_data
+
+            # Calculate the log-likelihood for each data point and sum them
+            log_likelihoods = []
+            for pred in predicted_data:
+                log_likelihoods.append(stats.norm.logpdf(observed_noisy_ratings.get_value(), loc=pred).sum())
+
+            # Convert log-likelihoods to likelihoods
+            likelihoods = np.exp(log_likelihoods)
+
+            # Save posterior distributions for participant
+            posterior_distributions_all_participants[participant_id] = {
+                "summary_stats": summary_stats,
+                "predicted_data": predicted_data,
+                "likelihoods": likelihoods
+                # "trace": trace
+            }
 
     except (pm.exceptions.SamplingError, ps.ParallelSamplingError) as e:
         print(f"SamplingError for participant {participant_id}: {e}")
