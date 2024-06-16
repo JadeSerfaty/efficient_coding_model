@@ -6,10 +6,15 @@ from utils import *
 
 duration_mapping_dict = {"short": 900, "long": 2600}
 
+
 class ModelRunner:
     def __init__(self, emotion="anxiety", duration="long", use_mock_data=False, run_choice=False):
         self.emotion = emotion
-        self.duration = duration_mapping_dict[duration]
+        # If duration is both, set a flag to use both durations
+        if duration == "both":
+            self.duration = "both"
+        else:
+            self.duration = duration_mapping_dict[duration]
         self.use_mock_data = use_mock_data
         self.run_choice = run_choice
         self.main_path_rating_data = "data_collection/main_study/v1/rating_data.csv"
@@ -34,7 +39,10 @@ class ModelRunner:
         else:
             self.rating_data = pd.read_csv(self.main_path_rating_data)
             self.choice_data = pd.read_csv(self.main_path_choice_data)
-            self.filter_data()
+            if self.duration == "both":
+                self.filter_data_both_durations()
+            else:
+                self.filter_data()
 
     def filter_data(self):
         self.rating_data = self.rating_data[self.rating_data["emotionName"] == self.emotion].copy()
@@ -52,6 +60,33 @@ class ModelRunner:
             rating_data_phase2.rename(columns={'rating_phase2': 'rating',
                                                'durationBlackScreen_phase2': 'durationBlackScreen'})],
             ignore_index=True)
+
+    def filter_data_both_durations(self):
+        self.rating_data = self.rating_data[self.rating_data["emotionName"] == self.emotion].copy()
+        self.choice_data = self.choice_data[self.choice_data["emotionName"] == self.emotion].copy()
+
+        rating_data_phase1 = self.rating_data[
+            ['videoID', 'emotionName', 'durationBlackScreen_phase1', 'rating_phase1', 'average_rating',
+             'variance_rating', 'subject_id']]
+        rating_data_phase1 = rating_data_phase1.rename(columns={
+            'rating_phase1': 'rating',
+            'durationBlackScreen_phase1': 'duration'
+        })
+
+        rating_data_phase2 = self.rating_data[
+            ['videoID', 'emotionName', 'durationBlackScreen_phase2', 'rating_phase2', 'average_rating',
+             'variance_rating', 'subject_id']]
+        rating_data_phase2 = rating_data_phase2.rename(columns={
+            'rating_phase2': 'rating',
+            'durationBlackScreen_phase2': 'duration'
+        })
+
+        self.rating_data = pd.concat([rating_data_phase1, rating_data_phase2], ignore_index=True)
+
+        # Create a binary indicator for short duration
+        self.rating_data['duration_short'] = (self.rating_data['duration'] == 900).astype(int)
+
+        print(len(self.rating_data))
 
     def run_efficient_coding_models(self):
         all_participant_ids = np.unique(self.rating_data["subject_id"])
