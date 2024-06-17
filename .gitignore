@@ -13,4 +13,6 @@ simulations/
 
 __pycache__/
 
+venv/*
+
 newenv/*
