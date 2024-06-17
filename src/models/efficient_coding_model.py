@@ -1,8 +1,8 @@
 import pymc3 as pm
 import pymc3.parallel_sampling as ps
 from scipy import stats
-from utils.utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
-
+from src.utils.utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
+from src.utils.math import *
 
 def run_efficient_coding_model(posterior_distributions_all_participants, participant_id,
                                rating_data_emo, use_mock_data=False):
@@ -15,6 +15,7 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
             participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
                 participant_id, rating_data_emo, epsilon=1e-6)
 
+
         # Bayesian model Setup
         with pm.Model() as model:
             # Prior distributions for parameters
@@ -25,9 +26,9 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
 
             # Observations
             if use_mock_data:
-                observed_noisy_ratings = pm.Data("observed_noisy_ratings", participant_emo['normalized_average_rating'])
+                observed_noisy_ratings = pm.Data("observed_noisy_ratings", participant_emo['NORMALIZED_AVERAGE_RATING'])
             else:
-                observed_noisy_ratings = pm.Data("observed_noisy_ratings", participant_emo['normalized_rating'])
+                observed_noisy_ratings = pm.Data("observed_noisy_ratings", participant_emo['NORMALIZED_RATING'])
 
             # Define the latent variable v with a logistic prior
             v = pm.Uniform('v', 0, 1, shape=num_videos)  # Starting with a Uniform prior for simplicity
