@@ -1,4 +1,5 @@
 import os
+import boto3
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ from models.choice_model import run_choice_model
 from utils.utils import *
 
 DURATION_MAPPING_DICT = {"short": 900, "long": 2600}
-
+S3_BUCKET = "efficient-coding-model"
 
 class ModelRunner:
     def __init__(self, emotion="ANXIETY", duration="LONG", use_mock_data=False, run_choice=False, iteration="v3"):
@@ -32,6 +33,8 @@ class ModelRunner:
         self.rating_data = None
         self.choice_data = None
         self.load_data()
+
+        self.login_aws()
 
     def load_data(self):
         self.rating_data = pd.read_csv(self.paths["rating_data"])
@@ -86,6 +89,19 @@ class ModelRunner:
             self.run_choice_models(posterior_distributions_all_participants)
         else:
             print("Efficient coding model has been processed. Choice model run was skipped.")
+
+    def upload_to_s3(self, data, key):
+        pickle_data = pickle.dumps(data)
+        self.s3_client.put_object(Bucket=S3_BUCKET, Key=key, Body=pickle_data)
+
+    def login_aws(self):
+        print("Login to AWS S3")
+        self.s3_client = boto3.client(
+            service_name="s3",
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        )
+        print("AWS S3 login successful")
 
 
 if __name__ == "__main__":
