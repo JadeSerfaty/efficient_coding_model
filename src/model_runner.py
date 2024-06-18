@@ -25,11 +25,11 @@ class ModelRunner:
         base_path = "mock" if use_mock_data else f"main_study/{self.iteration}"
 
         self.paths = {
-            "rating_data": f"data/{base_path}/rating_data_formatted.csv",
-            "choice_data": f"data/{base_path}/choice_data_formatted.csv",
+            "rating_data": f"data/{base_path}/rating_data_auguste_aws_formatted.csv",
+            "choice_data": f"data/{base_path}/choice_data_auguste_aws_formatted.csv",
             "ec_model": f"model_outputs/{base_path}/outputs_EC_model/",
             "choice_model": f"model_outputs/{base_path}/choice_model/",
-            "posterior_distributions": f"{base_path}_{emotion}_{duration}_posterior_distributions_auguste_code.p",
+            "posterior_distributions": f"{base_path}_{emotion}_{duration}_posterior_distributions_auguste_aws.p",
             "choice_model_outputs": f"{base_path}_{emotion}_choice_probs.p"
         }
 
@@ -42,8 +42,8 @@ class ModelRunner:
     def load_data(self):
         self.rating_data = pd.read_csv(self.paths["rating_data"])
         self.choice_data = pd.read_csv(self.paths["choice_data"])
-        if not self.use_mock_data:
-            self.filter_data()
+        # if not self.use_mock_data:
+        self.filter_data()
 
     def filter_data(self):
         self.rating_data = self.rating_data[self.rating_data["EMOTION_NAME"] == self.emotion].copy()
