@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import numpy as np
 import pandas as pd
 import concurrent.futures
-from src.models.efficient_coding_model import run_efficient_coding_model
+from src.models.efficient_coding_model import run_efficient_coding_model, run_separate_sigma_model
 from src.models.choice_model import run_choice_model
 from src.utils.utils import *
 
@@ -25,11 +25,11 @@ class ModelRunner:
         base_path = "mock" if use_mock_data else f"main_study/{self.iteration}"
 
         self.paths = {
-            "rating_data": f"data/{base_path}/rating_data_auguste_aws_formatted.csv",
-            "choice_data": f"data/{base_path}/choice_data_auguste_aws_formatted.csv",
+            "rating_data": f"data/{base_path}/rating_data_formatted.csv",
+            "choice_data": f"data/{base_path}/choice_data_formatted.csv",
             "ec_model": f"model_outputs/{base_path}/outputs_EC_model/",
             "choice_model": f"model_outputs/{base_path}/choice_model/",
-            "posterior_distributions": f"{base_path}_{emotion}_{duration}_posterior_distributions_auguste_aws.p",
+            "posterior_distributions": f"{base_path}_{emotion}_{duration}_posterior_distributions_short_long_nested.p",
             "choice_model_outputs": f"{base_path}_{emotion}_choice_probs.p"
         }
 
@@ -49,8 +49,9 @@ class ModelRunner:
         self.rating_data = self.rating_data[self.rating_data["EMOTION_NAME"] == self.emotion].copy()
         self.choice_data = self.choice_data[self.choice_data["EMOTION_NAME"] == self.emotion].copy()
 
-        if self.duration != "BOTH":
+        if self.duration != "both":
             self.rating_data = self.rating_data[self.rating_data['DURATION'] == self.duration]
+            print("problem I used both")
         else:
             self.rating_data['DURATION_SHORT'] = (self.rating_data['DURATION'] == 900).astype(int)
 
@@ -72,7 +73,7 @@ class ModelRunner:
 
     def run_efficient_coding_models(self):
         posterior_distributions_all_participants = self.run_parallel_models(
-            run_efficient_coding_model, self.rating_data, self.use_mock_data
+            run_separate_sigma_model, self.rating_data
         )
         with open(os.path.join(self.paths["ec_model"], self.paths["posterior_distributions"]), 'wb') as fp:
             pickle.dump(posterior_distributions_all_participants, fp)

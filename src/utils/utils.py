@@ -52,6 +52,8 @@ def prepare_data_for_efficient_coding_all_emotions(participant_id, rating_data_e
         lambda x: 0 + epsilon if x == 0 else (1 - epsilon if x == 1 else x)
     )
 
+    print("the length of participant_emo is:", len(participant_emo))
+
     # Extract the number of videos
     num_videos = len(participant_emo)
 
