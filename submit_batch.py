@@ -9,9 +9,9 @@ JOB_NAME = 'batch_working'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
 EMOTIONS = ['joy', 'anxiety']  # Example emotions
-DURATIONS = [900]  # Example durations
+DURATIONS = [900, 2600]  # Example durations
 PHASES = [1, 2]  # Example phases
-RUN_NAME = 'batch'  # Run name to be added for S3 key
+RUN_NAME = 'batch_working'  # Run name to be added for S3 key
 
 
 def submit_batch_jobs(data_path=DATA_PATH):
