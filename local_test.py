@@ -1,7 +1,7 @@
 import json
 import os
 import pandas as pd
-from utils.data_formatter import DataFormatter
+from src.utils.data_formatter import DataFormatter
 
 # Define constants for local testing
 DATA_PATH = './data/mock/auguste/rating_data_formatted.csv'

@@ -1,14 +1,12 @@
 import os
-import sys
 import json
-import pickle
 import numpy as np
 import pandas as pd
 import concurrent.futures
 from multiprocessing import Manager
 from src.models.efficient_coding_model import run_efficient_coding_model, run_separate_sigma_model
 from src.models.choice_model import run_choice_model
-from utils.s3_client import S3Client
+from src.utils.s3_client import S3Client
 
 
 class ModelRunner:
