@@ -84,8 +84,8 @@ class ModelRunner:
         print("Login to AWS S3")
         self.s3_client = boto3.client(
             service_name="s3",
-            aws_access_key_id="AKIAZI2LH2U5KTZBDBVB",
-            aws_secret_access_key="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",
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
         )
         print("AWS S3 login successful")
 
