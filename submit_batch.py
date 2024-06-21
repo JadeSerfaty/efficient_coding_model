@@ -1,45 +1,57 @@
 import json
 import boto3
-from data_formatter import DataFormatter
+from utils.data_formatter import DataFormatter
+import os
 
 # Define constants
 DATA_PATH = './data/mock/auguste/rating_data_formatted.csv'  # Adjust this path
-JOB_NAME = 'MyModelRunnerJob'
+JOB_NAME = 'mock_test'
 JOB_QUEUE = 'MyJobQueue'
-JOB_DEFINITION = 'MyJobDefinition'
-EMOTIONS = ['joy']  # Example emotions
+JOB_DEFINITION = 'MyModelRunnerJob'
+EMOTIONS = ['joy', 'anxiety']  # Example emotions
 DURATIONS = [900]  # Example durations
 PHASES = [1, 2]  # Example phases
+RUN_NAME = 'batch'  # Run name to be added for S3 key
 
 def submit_batch_jobs(data_path=DATA_PATH):
-    formatter = DataFormatter(data_path, EMOTIONS, DURATIONS, PHASES)
+    formatter = DataFormatter(data_path, EMOTIONS, DURATIONS, PHASES, RUN_NAME)
     combinations = formatter.split_data()
-    print(combinations)
-    #
-    # batch_client = boto3.client('batch')
-    # for idx, combination in enumerate(combinations):
-    #     response = batch_client.submit_job(
-    #         jobName=f"{JOB_NAME}_{combination['job_name']}",
-    #         jobQueue=JOB_QUEUE,
-    #         jobDefinition=JOB_DEFINITION,
-    #         containerOverrides={
-    #             'environment': [
-    #                 {
-    #                     'name': 'CHOICE_DATA',
-    #                     'value': combination['choice_data'].to_json()
-    #                 },
-    #                 {
-    #                     'name': 'RATING_DATA',
-    #                     'value': combination['rating_data'].to_json()
-    #                 },
-    #                 {
-    #                     'name': 'JOB_NAME',
-    #                     'value': combination['job_name']
-    #                 }
-    #             ]
-    #         }
-    #     )
-    #     print(f'Submitted job {idx + 1}/{len(combinations)} - Job ID: {response["jobId"]}')
+
+    # Convert DataFrames to JSON strings
+    for combination in combinations:
+        combination['choice_data'] = combination['choice_data'].to_json(orient='split')
+        combination['rating_data'] = combination['rating_data'].to_json(orient='split')
+
+    # Convert the combinations list to JSON
+    combinations_json = json.dumps(combinations)
+
+    batch_client = boto3.client('batch')
+    response = batch_client.submit_job(
+        jobName=JOB_NAME,
+        jobQueue=JOB_QUEUE,
+        jobDefinition=JOB_DEFINITION,
+        arrayProperties={
+            'size': len(combinations)
+        },
+        containerOverrides={
+            'environment': [
+                {
+                    'name': 'COMBINATIONS',
+                    'value': combinations_json
+                },
+                {
+                    'name': 'AWS_ACCESS_KEY_ID',
+                    'value': os.getenv('AWS_ACCESS_KEY_ID')
+                },
+                {
+                    'name': 'AWS_SECRET_ACCESS_KEY',
+                    'value': os.getenv('AWS_SECRET_ACCESS_KEY')
+                },
+            ]
+        }
+    )
+    print(f'Submitted array job - Job ID: {response["jobId"]}')
+
 
 if __name__ == "__main__":
     submit_batch_jobs()

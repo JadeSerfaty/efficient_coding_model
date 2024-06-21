@@ -11,11 +11,13 @@ from src.models.choice_model import run_choice_model
 from src.utils.utils import *
 
 S3_BUCKET = "efficient-coding-model"
+AWS_ACCESS_KEY_ID="AKIAZI2LH2U5KTZBDBVB"
+AWS_SECRET_ACCESS_KEY="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"
 
 class ModelRunner:
-    def __init__(self, choice_data_csv, rating_data_csv, job_name="default_job", run_choice=False):
-        self.choice_data_csv = choice_data_csv
-        self.rating_data_csv = rating_data_csv
+    def __init__(self, choice_data, rating_data, job_name="default_job", run_choice=False):
+        self.choice_data_csv = choice_data
+        self.rating_data_csv = rating_data
         self.job_name = job_name
         self.run_choice = run_choice
 
@@ -31,43 +33,47 @@ class ModelRunner:
 
         self.login_aws()
 
-    def run_parallel_models(self, model_func, *model_args):
-        all_participant_ids = np.unique(self.rating_data["SUBJECT_ID"])
-        with Manager() as manager:
-            results = manager.dict()
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                futures = [
-                    executor.submit(model_func, results, participant_id, *model_args)
-                    for participant_id in all_participant_ids
-                ]
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as e:
-                        print(f"Error: {e}")
-            return dict(results)
-
-    def run_efficient_coding_models(self):
-        posterior_distributions_all_participants = self.run_parallel_models(
-            run_separate_sigma_model, self.rating_data
-        )
-        self.upload_to_s3(posterior_distributions_all_participants, self.paths["posterior_distributions"])
-        print(f"Processing posterior distributions for {self.emotion} and {self.duration} completed and results saved successfully.")
-        return posterior_distributions_all_participants
-
-    def run_choice_models(self, posterior_distributions_all_participants):
-        choice_results = self.run_parallel_models(
-            run_choice_model, self.rating_data, self.choice_data, posterior_distributions_all_participants
-        )
-        self.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
-        print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
-
-    def run(self):
-        posterior_distributions_all_participants = self.run_efficient_coding_models()
-        if self.run_choice:
-            self.run_choice_models(posterior_distributions_all_participants)
-        else:
-            print(f"Efficient coding model for {self.emotion} and {self.duration} has been processed. Choice model run was skipped.")
+        mock_data = pd.DataFrame()
+        self.upload_to_s3(mock_data, self.paths["posterior_distributions"])
+        self.upload_to_s3(mock_data, self.paths["choice_model_outputs"])
+    #
+    # def run_parallel_models(self, model_func, *model_args):
+    #     all_participant_ids = np.unique(self.rating_data["SUBJECT_ID"])
+    #     with Manager() as manager:
+    #         results = manager.dict()
+    #         with concurrent.futures.ProcessPoolExecutor() as executor:
+    #             futures = [
+    #                 executor.submit(model_func, results, participant_id, *model_args)
+    #                 for participant_id in all_participant_ids
+    #             ]
+    #             for future in concurrent.futures.as_completed(futures):
+    #                 try:
+    #                     future.result()
+    #                 except Exception as e:
+    #                     print(f"Error: {e}")
+    #         return dict(results)
+    #
+    # def run_efficient_coding_models(self):
+    #     posterior_distributions_all_participants = self.run_parallel_models(
+    #         run_separate_sigma_model, self.rating_data
+    #     )
+    #     self.upload_to_s3(posterior_distributions_all_participants, self.paths["posterior_distributions"])
+    #     print(f"Processing posterior distributions for {self.emotion} and {self.duration} completed and results saved successfully.")
+    #     return posterior_distributions_all_participants
+    #
+    # def run_choice_models(self, posterior_distributions_all_participants):
+    #     choice_results = self.run_parallel_models(
+    #         run_choice_model, self.rating_data, self.choice_data, posterior_distributions_all_participants
+    #     )
+    #     self.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
+    #     print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
+    #
+    # def run(self):
+    #     posterior_distributions_all_participants = self.run_efficient_coding_models()
+    #     if self.run_choice:
+    #         self.run_choice_models(posterior_distributions_all_participants)
+    #     else:
+    #         print(f"Efficient coding model for {self.emotion} and {self.duration} has been processed. Choice model run was skipped.")
 
     def upload_to_s3(self, data, key):
         pickle_data = pickle.dumps(data)
@@ -77,8 +83,8 @@ class ModelRunner:
         print("Login to AWS S3")
         self.s3_client = boto3.client(
             service_name="s3",
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_access_key_id="AKIAZI2LH2U5KTZBDBVB",
+            aws_secret_access_key="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",
         )
         print("AWS S3 login successful")
 
@@ -94,8 +100,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     model_runner = ModelRunner(
-        choice_data_csv=args.choice_data_csv,
-        rating_data_csv=args.rating_data_csv,
+        choice_data=args.choice_data_csv,
+        rating_data=args.rating_data_csv,
         job_name=args.job_name
     )
     model_runner.run()
