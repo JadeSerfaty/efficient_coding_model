@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import boto3
@@ -15,20 +16,20 @@ AWS_ACCESS_KEY_ID="AKIAZI2LH2U5KTZBDBVB"
 AWS_SECRET_ACCESS_KEY="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"
 
 class ModelRunner:
-    def __init__(self, choice_data, rating_data, job_name="default_job", run_choice=False):
-        self.choice_data_csv = choice_data
-        self.rating_data_csv = rating_data
+    def __init__(self, choice_data_json, rating_data_json, job_name="default_job", run_choice=False, run_name="default_run"):
+        self.choice_data_json = choice_data_json
+        self.rating_data_json = rating_data_json
         self.job_name = job_name
         self.run_choice = run_choice
 
-        self.rating_data = pd.read_csv(self.rating_data_csv)
-        self.choice_data = pd.read_csv(self.choice_data_csv)
+        self.rating_data = pd.read_csv(self.rating_data_json)
+        self.choice_data = pd.read_csv(self.choice_data_json)
         self.emotion = self.rating_data['EMOTION_NAME'].iloc[0]
         self.duration = self.rating_data['DURATION'].iloc[0]
 
         self.paths = {
-            "posterior_distributions": f"{self.job_name}_{self.emotion}_{self.duration}_posterior_distributions.p",
-            "choice_model_outputs": f"{self.job_name}_{self.emotion}_choice_probs.p"
+            "posterior_distributions": f"{run_name}/{self.job_name}/{self.emotion}_{self.duration}_posterior_distributions.p",
+            "choice_model_outputs": f"{run_name}/{self.job_name}/{self.emotion}_choice_probs.p"
         }
 
         self.login_aws()
@@ -36,44 +37,44 @@ class ModelRunner:
         mock_data = pd.DataFrame()
         self.upload_to_s3(mock_data, self.paths["posterior_distributions"])
         self.upload_to_s3(mock_data, self.paths["choice_model_outputs"])
-    #
-    # def run_parallel_models(self, model_func, *model_args):
-    #     all_participant_ids = np.unique(self.rating_data["SUBJECT_ID"])
-    #     with Manager() as manager:
-    #         results = manager.dict()
-    #         with concurrent.futures.ProcessPoolExecutor() as executor:
-    #             futures = [
-    #                 executor.submit(model_func, results, participant_id, *model_args)
-    #                 for participant_id in all_participant_ids
-    #             ]
-    #             for future in concurrent.futures.as_completed(futures):
-    #                 try:
-    #                     future.result()
-    #                 except Exception as e:
-    #                     print(f"Error: {e}")
-    #         return dict(results)
-    #
-    # def run_efficient_coding_models(self):
-    #     posterior_distributions_all_participants = self.run_parallel_models(
-    #         run_separate_sigma_model, self.rating_data
-    #     )
-    #     self.upload_to_s3(posterior_distributions_all_participants, self.paths["posterior_distributions"])
-    #     print(f"Processing posterior distributions for {self.emotion} and {self.duration} completed and results saved successfully.")
-    #     return posterior_distributions_all_participants
-    #
-    # def run_choice_models(self, posterior_distributions_all_participants):
-    #     choice_results = self.run_parallel_models(
-    #         run_choice_model, self.rating_data, self.choice_data, posterior_distributions_all_participants
-    #     )
-    #     self.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
-    #     print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
-    #
-    # def run(self):
-    #     posterior_distributions_all_participants = self.run_efficient_coding_models()
-    #     if self.run_choice:
-    #         self.run_choice_models(posterior_distributions_all_participants)
-    #     else:
-    #         print(f"Efficient coding model for {self.emotion} and {self.duration} has been processed. Choice model run was skipped.")
+
+    def run_parallel_models(self, model_func, *model_args):
+        all_participant_ids = np.unique(self.rating_data["SUBJECT_ID"])
+        with Manager() as manager:
+            results = manager.dict()
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                futures = [
+                    executor.submit(model_func, results, participant_id, *model_args)
+                    for participant_id in all_participant_ids
+                ]
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        print(f"Error: {e}")
+            return dict(results)
+
+    def run_efficient_coding_models(self):
+        posterior_distributions_all_participants = self.run_parallel_models(
+            run_separate_sigma_model, self.rating_data
+        )
+        self.upload_to_s3(posterior_distributions_all_participants, self.paths["posterior_distributions"])
+        print(f"Processing posterior distributions for {self.emotion} and {self.duration} completed and results saved successfully.")
+        return posterior_distributions_all_participants
+
+    def run_choice_models(self, posterior_distributions_all_participants):
+        choice_results = self.run_parallel_models(
+            run_choice_model, self.rating_data, self.choice_data, posterior_distributions_all_participants
+        )
+        self.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
+        print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
+
+    def run(self):
+        posterior_distributions_all_participants = self.run_efficient_coding_models()
+        if self.run_choice:
+            self.run_choice_models(posterior_distributions_all_participants)
+        else:
+            print(f"Efficient coding model for {self.emotion} and {self.duration} has been processed. Choice model run was skipped.")
 
     def upload_to_s3(self, data, key):
         pickle_data = pickle.dumps(data)
@@ -90,18 +91,14 @@ class ModelRunner:
 
 
 if __name__ == "__main__":
-    import argparse
+    combinations = json.loads(os.getenv("COMBINATIONS"))
+    array_index = int(os.getenv("AWS_BATCH_JOB_ARRAY_INDEX", 0))
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--choice_data_csv", type=str, required=True, help="Path to the choice data CSV file")
-    parser.add_argument("--rating_data_csv", type=str, required=True, help="Path to the rating data CSV file")
-    parser.add_argument("--job_name", type=str, required=True, help="Job name for S3 key")
-    parser.add_argument("--run_choice", action="store_true", help="Run the choice model after the efficient coding model")
-    args = parser.parse_args()
+    combination = combinations[array_index]
 
     model_runner = ModelRunner(
-        choice_data=args.choice_data_csv,
-        rating_data=args.rating_data_csv,
-        job_name=args.job_name
+        choice_data_json=combination['choice_data'],
+        rating_data_json=combination['rating_data'],
+        job_name=combination['job_name'],
+        run_name=combination['run_name']
     )
-    model_runner.run()
