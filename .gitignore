@@ -18,4 +18,6 @@ newenv/
 
 .ipynb_checkpoints/
 
+*.ipynb
+
 *.env
