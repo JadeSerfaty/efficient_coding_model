@@ -16,3 +16,7 @@ __pycache__/
 venv/*
 
 newenv/*
+
+*.ipynb
+
+.ipynb_checkpoints/
