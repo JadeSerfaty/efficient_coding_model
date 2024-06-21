@@ -1,17 +1,18 @@
 import json
 import boto3
-from utils.data_formatter import DataFormatter
+from src.utils.data_formatter import DataFormatter
 import os
 
 # Define constants
 DATA_PATH = './data/mock/auguste/rating_data_formatted.csv'  # Adjust this path
-JOB_NAME = 'mock_test'
+JOB_NAME = 'batch_working'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
 EMOTIONS = ['joy', 'anxiety']  # Example emotions
 DURATIONS = [900]  # Example durations
 PHASES = [1, 2]  # Example phases
 RUN_NAME = 'batch'  # Run name to be added for S3 key
+
 
 def submit_batch_jobs(data_path=DATA_PATH):
     formatter = DataFormatter(data_path, EMOTIONS, DURATIONS, PHASES, RUN_NAME)
