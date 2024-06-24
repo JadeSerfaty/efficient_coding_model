@@ -11,6 +11,7 @@ from src.utils.s3_client import S3Client
 
 class ModelRunner:
     def __init__(self, task_config):
+        print("Starting model runner")
         self.rating_data_json = task_config['rating_data']
         self.job_name = task_config['job_name']
         self.run_choice = task_config['run_choice']
@@ -33,6 +34,8 @@ class ModelRunner:
         }
 
         self.s3_client = S3Client()
+
+        print(f"model started for {task_config['job_name']}, {self.emotion}, {self.duration} and {self.run_name}")
 
     def run_efficient_coding_models(self):
         if self.duration.size > 1:
@@ -60,7 +63,6 @@ class ModelRunner:
 
 if __name__ == "__main__":
     # Fetch environment variables
-    print(os.getenv("COMBINATIONS"))
     task_configs = json.loads(os.getenv("COMBINATIONS"))
     array_index = int(os.getenv("AWS_BATCH_JOB_ARRAY_INDEX", 0))
 
