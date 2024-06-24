@@ -35,7 +35,7 @@ def submit_batch_jobs():
     # Convert the combinations list to JSON
     s3_client = S3Client()
     combinations_json = json.dumps(combinations)
-    s3_client.upload_to_s3(combinations_json, COMBINATIONS_KEY_S3)
+    s3_client.upload_json_to_s3(combinations_json, COMBINATIONS_KEY_S3)
     print('Uploaded combinations to S3')
 
     batch_client = boto3.client('batch')

@@ -46,14 +46,14 @@ class ModelRunner:
             posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data)
         else:
             posterior_distributions = run_efficient_coding_model(rating_data=self.rating_data)
-        self.s3_client.upload_to_s3(posterior_distributions, self.paths["posterior_distributions"])
+        self.s3_client.upload_pickle_to_s3(posterior_distributions, self.paths["posterior_distributions"])
         print(
             f"Processing posterior distributions for participant: {self.subject_id} and {self.emotion} and {self.duration} completed and results saved successfully.")
         return posterior_distributions
 
     def run_choice_models(self, posterior_distributions):
         choice_results = run_choice_model(self.rating_data, self.choice_data, posterior_distributions)
-        self.s3_client.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
+        self.s3_client.upload_pickle_to_s3(choice_results, self.paths["choice_model_outputs"])
         print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
 
     def run(self):
@@ -68,7 +68,7 @@ class ModelRunner:
 if __name__ == "__main__":
     # Fetch environment variables
     s3_client = S3Client()
-    task_configs = s3_client.get_json_file_from_s3(os.getenv('COMBINATIONS_KEY_S3'))
+    task_configs = s3_client.get_json_file_from_s3(os.getenv("COMBINATIONS_KEY_S3"))
     array_index = int(os.getenv("AWS_BATCH_JOB_ARRAY_INDEX", 0))
 
     task_config = task_configs[array_index]

@@ -26,8 +26,8 @@ class MockModelRunner:
         self.s3_client = S3Client()
 
         mock_data = pd.DataFrame()
-        self.s3_client.upload_to_s3(mock_data, self.paths["posterior_distributions"])
-        self.s3_client.upload_to_s3(mock_data, self.paths["choice_model_outputs"])
+        self.s3_client.upload_pickle_to_s3(mock_data, self.paths["posterior_distributions"])
+        self.s3_client.upload_pickle_to_s3(mock_data, self.paths["choice_model_outputs"])
         print("Mock data uploaded to S3")
 
 

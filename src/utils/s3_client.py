@@ -15,9 +15,12 @@ class S3Client:
         )
         print("AWS S3 login successful")
 
-    def upload_to_s3(self, data, key):
+    def upload_pickle_to_s3(self, data, key):
         pickle_data = pickle.dumps(data)
         self.s3_client.put_object(Bucket=S3_BUCKET, Key=key, Body=pickle_data)
+
+    def upload_json_to_s3(self, data, key):
+        self.s3_client.put_object(Bucket=S3_BUCKET, Key=key, Body=data)
 
     def get_json_file_from_s3(self, key):
         response = self.s3_client.get_object(Bucket=S3_BUCKET, Key=key)
