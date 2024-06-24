@@ -1,5 +1,5 @@
 import pickle
-
+import json
 import boto3
 import os
 
@@ -24,4 +24,5 @@ class S3Client:
 
     def get_json_file_from_s3(self, key):
         response = self.s3_client.get_object(Bucket=S3_BUCKET, Key=key)
-        return response['Body'].read().decode('utf-8')
+        json_content = response['Body'].read().decode('utf-8')
+        return json.loads(json_content)  # Parse JSON content

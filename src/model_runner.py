@@ -12,6 +12,7 @@ from src.utils.s3_client import S3Client
 class ModelRunner:
     def __init__(self, task_config):
         print("Starting model runner")
+        print(task_config)
         self.rating_data_json = task_config['rating_data']
         self.job_name = task_config['job_name']
         self.run_choice = task_config['run_choice']
