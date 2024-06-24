@@ -2,12 +2,11 @@ import pymc3 as pm
 from src.utils.utils import *
 from src.utils.math import *
 
-def run_choice_model(participant_id, data, rating_data_emo, choice_data_emo, choice_results):
-    pairs, observed_choices, choice_probs, mu_empirical, s_empirical = prepare_data_for_choice_model(data,
-                                                                                                     participant_id,
-                                                                                                     rating_data_emo,
-                                                                                                     choice_data_emo)
-
+def run_choice_model(posterior_distributions, rating_data, choice_data):
+    results = {}
+    pairs, observed_choices, choice_probs, mu_empirical, s_empirical = prepare_data_for_choice_model(posterior_distributions,
+                                                                                                     rating_data,
+                                                                                                     choice_data)
     try:
         with pm.Model() as choice_model:
             s = s_empirical
@@ -44,11 +43,12 @@ def run_choice_model(participant_id, data, rating_data_emo, choice_data_emo, cho
                     choice_probs.append(mean_prob)
                     print(mean_prob)
 
-            choice_results[participant_id] = {
+            results = {
                 "choice_probabilities": choice_probs,
                 "observed_choices": observed_choices
             }
-            print(f"Results saved for participant {participant_id}")
 
     except Exception as e:
-        print(f"An error occurred with participant {participant_id}: {e}")
+        print(f"An error occurred")
+
+    return results

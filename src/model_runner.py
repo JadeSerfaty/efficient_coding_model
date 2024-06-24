@@ -15,7 +15,6 @@ class ModelRunner:
         self.rating_data_json = task_config['rating_data']
         self.job_name = task_config['job_name']
         self.run_choice = task_config['run_choice']
-        # self.run_choice = task_config.get('run_choice', False) # FIXME: Does not exist
         self.run_name = task_config.get('run_name', "default_run")
 
         self.rating_data = pd.read_json(self.rating_data_json, orient='split')
@@ -38,23 +37,21 @@ class ModelRunner:
         self.s3_client.upload_to_s3(mock_data, self.paths["choice_model_outputs"])
 
     def run_efficient_coding_models(self):
-        posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data)
+        if self.duration > 1:
+            posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data)
+        else:
+            posterior_distributions = run_efficient_coding_model(rating_data=self.rating_data)
         self.s3_client.upload_to_s3(posterior_distributions, self.paths["posterior_distributions"])
         print(
             f"Processing posterior distributions for participant: {self.subject_id} and {self.emotion} and {self.duration} completed and results saved successfully.")
         return posterior_distributions
 
-    def run_choice_models(self, posterior_distributions_all_participants):
-        print("I am broken :( oh no!")
-        # choice_results = self.run_parallel_models(
-        #     run_choice_model, self.rating_data, self.choice_data, posterior_distributions_all_participants
-        # )
-        # self.s3_client.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
-        # print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
+    def run_choice_models(self, posterior_distributions):
+        choice_results = run_choice_model(self.rating_data, self.choice_data, posterior_distributions)
+        self.s3_client.upload_to_s3(choice_results, self.paths["choice_model_outputs"])
+        print(f"Processing choice model for {self.emotion} and {self.duration} completed and results saved successfully.")
 
     def run(self):
-        if self.duration > 1:
-            raise NotImplementedError("Duration > 1 is not supported yet.")
         posterior_distributions_all_participants = self.run_efficient_coding_models()
         if self.run_choice:
             self.run_choice_models(posterior_distributions_all_participants)
