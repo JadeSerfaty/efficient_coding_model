@@ -20,8 +20,8 @@ def submit_batch_jobs():
                               emotions=EMOTIONS,
                               durations=DURATIONS,
                               phases=PHASES,
-                              run_choice=RUN_NAME,
-                              run_name=RUN_CHOICE)
+                              run_choice=RUN_CHOICE,
+                              run_name=RUN_NAME)
 
     combinations = formatter.split_data()
 
