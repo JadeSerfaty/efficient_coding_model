@@ -4,16 +4,14 @@ from scipy import stats
 from src.utils.utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
 from src.utils.math import *
 
-def run_efficient_coding_model(posterior_distributions_all_participants, participant_id,
-                               rating_data, use_mock_data=False):
+def run_efficient_coding_model(rating_data, use_mock_data=False):
+    results = {}
     try:
         if use_mock_data:
-            participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding(participant_id,
-                                                                                                       rating_data,
+            participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding(rating_data,
                                                                                                        epsilon=1e-6)
         else:
-            participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
-                participant_id, rating_data, epsilon=1e-6)
+            participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6)
 
 
         # Bayesian model Setup
@@ -77,7 +75,7 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
             likelihoods = np.exp(log_likelihoods)
 
             # Save posterior distributions for participant
-            posterior_distributions_all_participants[participant_id] = {
+            results = {
                 "summary_stats": summary_stats,
                 "predicted_data": predicted_data,
                 "likelihoods": likelihoods
@@ -85,24 +83,14 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
             }
 
     except (pm.exceptions.SamplingError, ps.ParallelSamplingError) as e:
-        print(f"SamplingError for participant {participant_id}: {e}")
+        print(f"SamplingError")
 
+    return results
 
 def run_separate_sigma_model(rating_data):
+    results = {}
     try:
-        rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
-            participant_id, rating_data, epsilon=1e-6)
-
-        # Ensure num_videos is correctly reflecting the unique videos
-        num_videos = len(rating_data['VIDEO_ID'])
-        print(num_videos)
-
-        # Calculate new parameters on the normalized scale
-        mu_empirical = rating_data['NORMALIZED_RATING'].mean()
-        s_empirical = rating_data['NORMALIZED_RATING'].std()
-
-        print("Estimated Prior Mean:", mu_empirical)
-        print("Estimated Prior Standard Deviation:", s_empirical)
+        rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6)
 
         with pm.Model() as model:
             # Priors
@@ -132,7 +120,7 @@ def run_separate_sigma_model(rating_data):
                     sigma_short ** 2 * duration_short + sigma_long ** 2 * (1 - duration_short))
             sd_likelihood = tt.sqrt(
                 (phi_prime_val ** 2) * (sigma_short ** 2 * duration_short + sigma_long ** 2 * (
-                            1 - duration_short)) + sigma_ext ** 2)
+                            1 - duration_short)) + sigma_ext)
 
             observed = pm.Normal('observed', mu=mean_likelihood, sigma=sd_likelihood, observed=observed_noisy_ratings)
             likelihood_factors = pm.Potential('likelihood_factors', tt.log(F_prime_v0_val) + tt.log(g_inv_prime_val))
@@ -148,11 +136,13 @@ def run_separate_sigma_model(rating_data):
                 log_likelihoods.append(stats.norm.logpdf(observed_noisy_ratings, loc=pred).sum())
             likelihoods = np.exp(log_likelihoods)
 
-            posterior_distributions_all_participants[participant_id] = {
+            results = {
                 "summary_stats": summary_stats,
                 "predicted_data": predicted_data,
                 "likelihoods": likelihoods
             }
 
     except (pm.exceptions.SamplingError, ps.ParallelSamplingError) as e:
-        print(f"SamplingError for participant {participant_id}: {e}")
+        print(f"SamplingError")
+
+    return results
