@@ -18,3 +18,7 @@ class S3Client:
     def upload_to_s3(self, data, key):
         pickle_data = pickle.dumps(data)
         self.s3_client.put_object(Bucket=S3_BUCKET, Key=key, Body=pickle_data)
+
+    def get_json_file_from_s3(self, key):
+        response = self.s3_client.get_object(Bucket=S3_BUCKET, Key=key)
+        return response['Body'].read().decode('utf-8')

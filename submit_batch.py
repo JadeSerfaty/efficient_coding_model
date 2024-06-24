@@ -2,18 +2,19 @@ import json
 import boto3
 from src.utils.data_formatter import DataFormatter
 import os
+from src.utils.s3_client import S3Client
 
 # Define constants
 DATA_PATH = './data/main_study/v2/rating_data_formatted.csv'  # Adjust this path
-JOB_NAME = 'batch_job'
+JOB_NAME = 'main_study_v2_training'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
-EMOTIONS = ['joy', 'anxiety', 'sadness', 'romance', 'disgust']  # Example emotions
+EMOTIONS = ['joy', 'sadness', 'romance', 'disgust', 'anxiety']  # Example emotions
 DURATIONS = [900, 2600]  # Example durations
 PHASES = [1, 2]  # Example phases
-RUN_NAME = 'batch_jade'  # Run name to be added for S3 key
+RUN_NAME = 'main_study_v2_training'  # Run name to be added for S3 key
 RUN_CHOICE = False  # Whether to run the choice model
-
+COMBINATIONS_KEY_S3 = f"{RUN_NAME}/combinations.json"
 
 def submit_batch_jobs():
     formatter = DataFormatter(data_path=DATA_PATH,
@@ -30,8 +31,12 @@ def submit_batch_jobs():
         combination['choice_data'] = combination['choice_data'].to_json(orient='split') if combination['choice_data'] else None
         combination['rating_data'] = combination['rating_data'].to_json(orient='split')
 
+    print('Prepared data and saved combinations to combinations.json')
     # Convert the combinations list to JSON
+    s3_client = S3Client()
     combinations_json = json.dumps(combinations)
+    s3_client.upload_to_s3(combinations_json, COMBINATIONS_KEY_S3)
+    print('Uploaded combinations to S3')
 
     batch_client = boto3.client('batch')
     response = batch_client.submit_job(
@@ -44,8 +49,8 @@ def submit_batch_jobs():
         containerOverrides={
             'environment': [
                 {
-                    'name': 'COMBINATIONS',
-                    'value': combinations_json
+                    'name': 'COMBINATIONS_KEY_S3',
+                    'value': COMBINATIONS_KEY_S3
                 },
                 {
                     'name': 'AWS_ACCESS_KEY_ID',

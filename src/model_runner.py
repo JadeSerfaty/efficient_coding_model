@@ -28,8 +28,12 @@ class ModelRunner:
         if self.subject_id.size > 1:
             raise ValueError("Only one subject_id is supported at the moment.")
 
+        if self.duration.size > 1:
+            title_duration = "all"
+        else:
+            title_duration = f"{self.duration[0]}"
         self.paths = {
-            "posterior_distributions": f"{self.run_name}/{self.job_name}/{self.emotion}_{self.duration}_posterior_distributions.p",
+            "posterior_distributions": f"{self.run_name}/{self.job_name}/{self.emotion}_{title_duration}_posterior_distributions.p",
             "choice_model_outputs": f"{self.run_name}/{self.job_name}/{self.emotion}_choice_probs.p"
         }
 
@@ -63,7 +67,8 @@ class ModelRunner:
 
 if __name__ == "__main__":
     # Fetch environment variables
-    task_configs = json.loads(os.getenv("COMBINATIONS"))
+    s3_client = S3Client()
+    task_configs = s3_client.get_json_file_from_s3(os.getenv('COMBINATIONS_KEY_S3'))
     array_index = int(os.getenv("AWS_BATCH_JOB_ARRAY_INDEX", 0))
 
     task_config = task_configs[array_index]
