@@ -4,6 +4,8 @@ from scipy import stats
 from src.utils.utils import prepare_data_for_efficient_coding, prepare_data_for_efficient_coding_all_emotions
 from src.utils.math import *
 
+DURATIONS_MAPPING_DICT = {900: 0,
+             2600:1}
 def run_efficient_coding_model(rating_data, use_mock_data=False):
     results = {}
     try:
@@ -102,7 +104,8 @@ def run_separate_sigma_model(rating_data):
 
             # Observations
             observed_noisy_ratings = rating_data['NORMALIZED_RATING'].values
-            duration_short = rating_data['DURATION_SHORT'].values
+            duration_short = np.array([DURATIONS_MAPPING_DICT[val] for val in rating_data['DURATION'].values])
+            print(duration_short)
 
             # Define the latent variable v with a logistic prior
             v = pm.Uniform('v', 0, 1, shape=num_videos)  # Starting with a Uniform prior for simplicity

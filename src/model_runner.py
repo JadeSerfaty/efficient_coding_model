@@ -23,7 +23,7 @@ class ModelRunner:
         self.rating_data = pd.read_json(self.rating_data_json, orient='split')
         self.emotion = self.rating_data['EMOTION_NAME'].iloc[0]
         self.duration = self.rating_data['DURATION'].unique()
-        self.subject_id = self.rating_data['SUBJECT_ID'].unique
+        self.subject_id = self.rating_data['SUBJECT_ID'].unique()
         if self.subject_id.size > 1:
             raise ValueError("Only one subject_id is supported at the moment.")
 
@@ -35,7 +35,7 @@ class ModelRunner:
         self.s3_client = S3Client()
 
     def run_efficient_coding_models(self):
-        if self.duration > 1:
+        if self.duration.size > 1:
             posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data)
         else:
             posterior_distributions = run_efficient_coding_model(rating_data=self.rating_data)
