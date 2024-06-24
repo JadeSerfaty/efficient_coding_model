@@ -36,4 +36,4 @@ COPY src ./src/
 ENV PYTHONPATH="${PYTHONPATH}:/efficient_coding_model/src"
 
 # Define the entrypoint script to accept arguments
-ENTRYPOINT ["python", "src/mock_model_runner.py"]
+ENTRYPOINT ["python", "src/model_runner.py"]

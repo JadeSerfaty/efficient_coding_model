@@ -23,11 +23,11 @@ class DataFormatter:
                     ]
                     if not filtered_data.empty:
                         job_name = f"{subject_id}_{emotion}"
-                        choice_data = filtered_data[filtered_data['PHASE'] == self.phases[0]]  # First phase is choice
+                        # choice_data = filtered_data[filtered_data['PHASE'] == self.phases[0]]  # First phase is choice
                         rating_data = filtered_data[filtered_data['PHASE'].isin(self.phases)]  # All phases are rating
                         combinations.append({
                             "job_name": job_name,
-                            "choice_data": choice_data,
+                            "choice_data": False, #FIXME choice_data
                             "rating_data": rating_data,
                             "run_name": self.run_name,
                             "run_choice": self.run_choice
@@ -44,11 +44,11 @@ class DataFormatter:
                         ]
                         if not filtered_data.empty:
                             job_name = f"{subject_id}_{emotion}_{duration}"
-                            choice_data = filtered_data[filtered_data['PHASE'] == self.phases[0]]  # First phase is choice
+                            # choice_data = filtered_data[filtered_data['PHASE'] == self.phases[0]]  # First phase is choice
                             rating_data = filtered_data[filtered_data['PHASE'].isin(self.phases)]  # All phases are rating
                             combinations.append({
                                 "job_name": job_name,
-                                "choice_data": choice_data,
+                                "choice_data": False,
                                 "rating_data": rating_data,
                                 "run_name": self.run_name,
                                 "run_choice": self.run_choice

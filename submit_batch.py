@@ -4,11 +4,11 @@ from src.utils.data_formatter import DataFormatter
 import os
 
 # Define constants
-DATA_PATH = './data/mock/auguste/rating_data_formatted.csv'  # Adjust this path
+DATA_PATH = './data/main_study/v2/rating_data_formatted.csv'  # Adjust this path
 JOB_NAME = 'batch_job'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
-EMOTIONS = ['joy', 'anxiety']  # Example emotions
+EMOTIONS = ['joy', 'anxiety', 'sadness', 'romance', 'disgust']  # Example emotions
 DURATIONS = [900, 2600]  # Example durations
 PHASES = [1, 2]  # Example phases
 RUN_NAME = 'batch_jade'  # Run name to be added for S3 key
@@ -27,7 +27,7 @@ def submit_batch_jobs():
 
     # Convert DataFrames to JSON strings
     for combination in combinations:
-        combination['choice_data'] = combination['choice_data'].to_json(orient='split')
+        combination['choice_data'] = combination['choice_data'].to_json(orient='split') if combination['choice_data'] else None
         combination['rating_data'] = combination['rating_data'].to_json(orient='split')
 
     # Convert the combinations list to JSON

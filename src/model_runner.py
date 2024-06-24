@@ -11,14 +11,16 @@ from src.utils.s3_client import S3Client
 
 class ModelRunner:
     def __init__(self, task_config):
-        self.choice_data_json = task_config['choice_data']
         self.rating_data_json = task_config['rating_data']
         self.job_name = task_config['job_name']
         self.run_choice = task_config['run_choice']
         self.run_name = task_config.get('run_name', "default_run")
 
+        self.choice_data_json = task_config['choice_data']
+        if self.choice_data_json:
+            self.choice_data = pd.read_json(self.choice_data_json, orient='split')
+
         self.rating_data = pd.read_json(self.rating_data_json, orient='split')
-        self.choice_data = pd.read_json(self.choice_data_json, orient='split')
         self.emotion = self.rating_data['EMOTION_NAME'].iloc[0]
         self.duration = self.rating_data['DURATION'].unique()
         self.subject_id = self.rating_data['SUBJECT_ID'].unique
@@ -31,10 +33,6 @@ class ModelRunner:
         }
 
         self.s3_client = S3Client()
-
-        mock_data = pd.DataFrame()
-        self.s3_client.upload_to_s3(mock_data, self.paths["posterior_distributions"])
-        self.s3_client.upload_to_s3(mock_data, self.paths["choice_model_outputs"])
 
     def run_efficient_coding_models(self):
         if self.duration > 1:
@@ -62,6 +60,7 @@ class ModelRunner:
 
 if __name__ == "__main__":
     # Fetch environment variables
+    print(os.getenv("COMBINATIONS"))
     task_configs = json.loads(os.getenv("COMBINATIONS"))
     array_index = int(os.getenv("AWS_BATCH_JOB_ARRAY_INDEX", 0))
 
