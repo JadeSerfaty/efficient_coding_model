@@ -50,6 +50,9 @@ def prepare_data_for_efficient_coding_all_emotions(rating_data_emo, epsilon=1e-6
         lambda x: 0 + epsilon if x == 0 else (1 - epsilon if x == 1 else x)
     )
 
+    # Sort the data by DURATION_SHORT in descending order to facilitate reading of outputs of model
+    rating_data_emo = rating_data_emo.sort_values(by='DURATION_SHORT', ascending=False).reset_index(drop=True)
+
     print("the length of rating_data_emo is:", len(rating_data_emo))
 
     # Extract the number of videos
