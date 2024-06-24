@@ -89,8 +89,20 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
 
 
 def run_separate_sigma_model(rating_data):
-    # try:
-    participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6)
+    try:
+        rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
+            participant_id, rating_data, epsilon=1e-6)
+
+        # Ensure num_videos is correctly reflecting the unique videos
+        num_videos = len(rating_data['VIDEO_ID'])
+        print(num_videos)
+
+        # Calculate new parameters on the normalized scale
+        mu_empirical = rating_data['NORMALIZED_RATING'].mean()
+        s_empirical = rating_data['NORMALIZED_RATING'].std()
+
+        print("Estimated Prior Mean:", mu_empirical)
+        print("Estimated Prior Standard Deviation:", s_empirical)
 
         with pm.Model() as model:
             # Priors
@@ -101,8 +113,8 @@ def run_separate_sigma_model(rating_data):
             sigma_ext = pm.HalfNormal('sigma_ext', sigma=0.5, initval=0.1)
 
             # Observations
-            observed_noisy_ratings = participant_emo['NORMALIZED_RATING'].values
-            duration_short = participant_emo['DURATION_SHORT'].values
+            observed_noisy_ratings = rating_data['NORMALIZED_RATING'].values
+            duration_short = rating_data['DURATION_SHORT'].values
 
             # Define the latent variable v with a logistic prior
             v = pm.Uniform('v', 0, 1, shape=num_videos)  # Starting with a Uniform prior for simplicity
@@ -119,8 +131,8 @@ def run_separate_sigma_model(rating_data):
             mean_likelihood = v + phi_double_prime_val * (
                     sigma_short ** 2 * duration_short + sigma_long ** 2 * (1 - duration_short))
             sd_likelihood = tt.sqrt(
-                (phi_prime_val ** 2) * (
-                            sigma_short ** 2 * duration_short + sigma_long ** 2 * (1 - duration_short)) + sigma_ext ** 2)
+                (phi_prime_val ** 2) * (sigma_short ** 2 * duration_short + sigma_long ** 2 * (
+                            1 - duration_short)) + sigma_ext ** 2)
 
             observed = pm.Normal('observed', mu=mean_likelihood, sigma=sd_likelihood, observed=observed_noisy_ratings)
             likelihood_factors = pm.Potential('likelihood_factors', tt.log(F_prime_v0_val) + tt.log(g_inv_prime_val))
@@ -136,12 +148,11 @@ def run_separate_sigma_model(rating_data):
                 log_likelihoods.append(stats.norm.logpdf(observed_noisy_ratings, loc=pred).sum())
             likelihoods = np.exp(log_likelihoods)
 
-        posterior_distributions = {
-            "summary_stats": summary_stats,
-            "predicted_data": predicted_data,
-            "likelihoods": likelihoods
-        }
-        return posterior_distributions
+            posterior_distributions_all_participants[participant_id] = {
+                "summary_stats": summary_stats,
+                "predicted_data": predicted_data,
+                "likelihoods": likelihoods
+            }
 
     except (pm.exceptions.SamplingError, ps.ParallelSamplingError) as e:
         print(f"SamplingError for participant {participant_id}: {e}")
