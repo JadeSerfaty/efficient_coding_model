@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the CSV file
-file_path = 'data/mock/rating_data.csv'
+file_path = '/Users/jadeserfaty/Desktop/rating_data.csv'
 rating_data = pd.read_csv(file_path)
 
 # Create a function to transform the data
@@ -44,7 +44,7 @@ def transform_data(df):
 transformed_data = transform_data(rating_data)
 
 # Save the transformed data to a new CSV file
-transformed_file_path = 'data/mock/rating_data_formatted.csv'
+transformed_file_path = 'data/main_study/v2/rating_data_formatted.csv'
 transformed_data.to_csv(transformed_file_path, index=False)
 
 print(f"Transformed data saved to {transformed_file_path}")
