@@ -5,17 +5,24 @@ import os
 
 # Define constants
 DATA_PATH = './data/mock/auguste/rating_data_formatted.csv'  # Adjust this path
-JOB_NAME = 'batch_working'
+JOB_NAME = 'batch_job'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
 EMOTIONS = ['joy', 'anxiety']  # Example emotions
 DURATIONS = [900, 2600]  # Example durations
 PHASES = [1, 2]  # Example phases
-RUN_NAME = 'batch_working'  # Run name to be added for S3 key
+RUN_NAME = 'batch_jade'  # Run name to be added for S3 key
+RUN_CHOICE = False  # Whether to run the choice model
 
 
-def submit_batch_jobs(data_path=DATA_PATH):
-    formatter = DataFormatter(data_path, EMOTIONS, DURATIONS, PHASES, RUN_NAME)
+def submit_batch_jobs():
+    formatter = DataFormatter(data_path=DATA_PATH,
+                              emotions=EMOTIONS,
+                              durations=DURATIONS,
+                              phases=PHASES,
+                              run_choice=RUN_NAME,
+                              run_name=RUN_CHOICE)
+
     combinations = formatter.split_data()
 
     # Convert DataFrames to JSON strings

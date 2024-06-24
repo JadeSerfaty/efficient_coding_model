@@ -5,15 +5,15 @@ from src.utils.utils import prepare_data_for_efficient_coding, prepare_data_for_
 from src.utils.math import *
 
 def run_efficient_coding_model(posterior_distributions_all_participants, participant_id,
-                               rating_data_emo, use_mock_data=False):
+                               rating_data, use_mock_data=False):
     try:
         if use_mock_data:
             participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding(participant_id,
-                                                                                                       rating_data_emo,
+                                                                                                       rating_data,
                                                                                                        epsilon=1e-6)
         else:
             participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
-                participant_id, rating_data_emo, epsilon=1e-6)
+                participant_id, rating_data, epsilon=1e-6)
 
 
         # Bayesian model Setup
@@ -88,11 +88,9 @@ def run_efficient_coding_model(posterior_distributions_all_participants, partici
         print(f"SamplingError for participant {participant_id}: {e}")
 
 
-def run_separate_sigma_model(posterior_distributions_all_participants, participant_id,
-                               rating_data_emo):
+def run_separate_sigma_model(rating_data):
     # try:
-    participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
-        participant_id, rating_data_emo, epsilon=1e-6)
+    participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6)
 
     # Ensure num_videos is correctly reflecting the unique videos
     num_videos = len(participant_emo['VIDEO_ID'].unique())
@@ -170,11 +168,12 @@ def run_separate_sigma_model(posterior_distributions_all_participants, participa
             log_likelihoods.append(stats.norm.logpdf(observed_noisy_ratings.get_value(), loc=pred).sum())
         likelihoods = np.exp(log_likelihoods)
 
-        posterior_distributions_all_participants[participant_id] = {
+        posterior_distributions = {
             "summary_stats": summary_stats,
             "predicted_data": predicted_data,
             "likelihoods": likelihoods
         }
+        return posterior_distributions
 
         # # Priors
         # mu = pm.Normal('mu', mu=mu_empirical, sigma=s_empirical)

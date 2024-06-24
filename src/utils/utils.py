@@ -40,31 +40,29 @@ def prepare_data_for_efficient_coding(participant_id, rating_data_emo, epsilon=1
     return participant_emo, mu_empirical, s_empirical, num_videos
 
 
-def prepare_data_for_efficient_coding_all_emotions(participant_id, rating_data_emo, epsilon=1e-6):
-    participant_emo = rating_data_emo[rating_data_emo["SUBJECT_ID"] == participant_id].copy()
-
+def prepare_data_for_efficient_coding_all_emotions(rating_data_emo, epsilon=1e-6):
     # Define the parameters for the prior distribution
     # Normalize the 'average_rating' to a 0-1 scale
-    participant_emo.loc[:, 'NORMALIZED_RATING'] = (participant_emo['RATING'] - 1) / (7 - 1)
+    rating_data_emo.loc[:, 'NORMALIZED_RATING'] = (rating_data_emo['RATING'] - 1) / (7 - 1)
 
     # Jitter for every participant
-    participant_emo.loc[:, 'NORMALIZED_RATING'] = participant_emo.loc[:, 'NORMALIZED_RATING'].apply(
+    rating_data_emo.loc[:, 'NORMALIZED_RATING'] = rating_data_emo.loc[:, 'NORMALIZED_RATING'].apply(
         lambda x: 0 + epsilon if x == 0 else (1 - epsilon if x == 1 else x)
     )
 
-    print("the length of participant_emo is:", len(participant_emo))
+    print("the length of rating_data_emo is:", len(rating_data_emo))
 
     # Extract the number of videos
-    num_videos = len(participant_emo)
+    num_videos = len(rating_data_emo)
 
     # Calculate new parameters on the normalized scale
-    mu_empirical = participant_emo['NORMALIZED_RATING'].mean()
-    s_empirical = participant_emo['NORMALIZED_RATING'].std()
+    mu_empirical = rating_data_emo['NORMALIZED_RATING'].mean()
+    s_empirical = rating_data_emo['NORMALIZED_RATING'].std()
 
     print("Estimated Prior Mean:", mu_empirical)
     print("Estimated Prior Standard Deviation:", s_empirical)
 
-    return participant_emo, mu_empirical, s_empirical, num_videos
+    return rating_data_emo, mu_empirical, s_empirical, num_videos
 
 
 # Functions for choice model
