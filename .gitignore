@@ -21,3 +21,5 @@ newenv/
 *.ipynb
 
 *.env
+
+model_outputs/*
