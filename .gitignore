@@ -13,10 +13,13 @@ simulations/
 
 __pycache__/
 
-venv/*
+venv/
+newenv/
 
-newenv/*
+.ipynb_checkpoints/
 
 *.ipynb
 
-.ipynb_checkpoints/
+*.env
+
+model_outputs/*
