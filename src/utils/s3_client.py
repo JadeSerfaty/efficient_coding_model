@@ -3,8 +3,7 @@ import json
 import boto3
 import os
 
-S3_BUCKET = "efficient-coding-model"
-
+S3_BUCKET = "efficient-coding-model-jade"
 
 class S3Client:
     def __init__(self):
