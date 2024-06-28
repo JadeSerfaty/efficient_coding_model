@@ -5,24 +5,26 @@ from src.utils.utils import prepare_data_for_efficient_coding, prepare_data_for_
 from src.utils.math import *
 
 DURATIONS_MAPPING_DICT = {900: 0,
-             2600:1}
-def run_efficient_coding_model(rating_data, duration): #use_mock_data=False
+                          2600: 1}
+
+
+def run_efficient_coding_model(rating_data, duration):  #use_mock_data=False
     results = {}
     try:
         # if use_mock_data:
         #     participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding(rating_data,
         #                                                                                                epsilon=1e-6)
         # else:
-        participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, duration, epsilon=1e-6)
-
+        participant_emo, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(
+            rating_data, duration, epsilon=1e-6)
 
         # Bayesian model Setup
         with pm.Model() as model:
             # Prior distributions for parameters
             mu = pm.Normal('mu', mu=mu_empirical, sigma=s_empirical)
-            s = pm.HalfNormal('s', sigma=s_empirical)
+            s = pm.HalfNormal('s', sigma=s_empirical, initval=0.1)
             sigma = pm.HalfNormal('sigma', sigma=1)
-            sigma_ext = pm.HalfNormal('sigma_ext', sigma=1)
+            sigma_ext = pm.HalfNormal('sigma_ext', sigma=1, initval=0.1)
 
             # # Observations
             # if use_mock_data:
@@ -89,10 +91,13 @@ def run_efficient_coding_model(rating_data, duration): #use_mock_data=False
 
     return results
 
-def  run_separate_sigma_model(rating_data, duration):
+
+def run_separate_sigma_model(rating_data, duration):
     results = {}
     try:
-        rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data, duration, epsilon=1e-6)
+        rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data,
+                                                                                                            duration,
+                                                                                                            epsilon=1e-6)
 
         with pm.Model() as model:
             # Priors
@@ -123,7 +128,7 @@ def  run_separate_sigma_model(rating_data, duration):
                     sigma_short ** 2 * duration_short + sigma_long ** 2 * (1 - duration_short))
             sd_likelihood = tt.sqrt(
                 (phi_prime_val ** 2) * (sigma_short ** 2 * duration_short + sigma_long ** 2 * (
-                            1 - duration_short)) + sigma_ext)
+                        1 - duration_short)) + sigma_ext)
 
             observed = pm.Normal('observed', mu=mean_likelihood, sigma=sd_likelihood, observed=observed_noisy_ratings)
             likelihood_factors = pm.Potential('likelihood_factors', tt.log(F_prime_v0_val) + tt.log(g_inv_prime_val))

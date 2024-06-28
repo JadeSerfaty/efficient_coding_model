@@ -56,7 +56,7 @@ def prepare_data_for_efficient_coding_all_emotions(rating_data, duration, epsilo
     s_empirical = rating_data_emo['NORMALIZED_RATING'].std()
 
     # Filter the data by duration to fit the model on each duration separately
-    if len(duration) == 1:
+    if duration.size == 1:
         rating_data_emo = rating_data_emo[rating_data_emo['DURATION'] == duration[0]]
 
     print("the length of rating_data_emo is:", len(rating_data_emo))
