@@ -39,7 +39,7 @@ class DataFormatter:
                     for subject_id in data['SUBJECT_ID'].unique():
                         filtered_data = data[
                             (data['EMOTION_NAME'].str.lower() == emotion.lower()) &
-                            (data['DURATION'] == duration) &
+                            # (data['DURATION'] == duration) & ## removed the duration filter because I want the parameters of the prior to reflect all ratings for both durations
                             (data['SUBJECT_ID'] == subject_id)
                         ]
                         if not filtered_data.empty:

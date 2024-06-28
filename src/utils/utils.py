@@ -38,7 +38,7 @@ def prepare_data_for_efficient_coding(rating_data, epsilon=1e-6):
     return participant_emo, mu_empirical, s_empirical, num_videos
 
 
-def prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6):
+def prepare_data_for_efficient_coding_all_emotions(rating_data, duration, epsilon=1e-6):
     # Define the parameters for the prior distribution
     # Normalize the 'average_rating' to a 0-1 scale
     rating_data.loc[:, 'NORMALIZED_RATING'] = (rating_data['RATING'] - 1) / (7 - 1)
@@ -51,14 +51,18 @@ def prepare_data_for_efficient_coding_all_emotions(rating_data, epsilon=1e-6):
     # Sort the data by DURATION in descending order to facilitate reading of outputs of model
     rating_data_emo = rating_data.sort_values(by='DURATION', ascending=False).reset_index(drop=True)
 
+    # Calculate the mean NORMALIZED_RATING for each VIDEO_ID over both durations
+    mu_empirical = rating_data_emo['NORMALIZED_RATING'].mean()
+    s_empirical = rating_data_emo['NORMALIZED_RATING'].std()
+
+    # Filter the data by duration to fit the model on each duration separately
+    if len(duration) == 1:
+        rating_data_emo = rating_data_emo[rating_data_emo['DURATION'] == duration[0]]
+
     print("the length of rating_data_emo is:", len(rating_data_emo))
 
     # Extract the number of videos
     num_videos = len(rating_data_emo)
-
-    # Calculate new parameters on the normalized scale
-    mu_empirical = rating_data_emo['NORMALIZED_RATING'].mean()
-    s_empirical = rating_data_emo['NORMALIZED_RATING'].std()
 
     print("Estimated Prior Mean:", mu_empirical)
     print("Estimated Prior Standard Deviation:", s_empirical)

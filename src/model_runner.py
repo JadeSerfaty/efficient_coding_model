@@ -44,9 +44,9 @@ class ModelRunner:
 
     def run_efficient_coding_models(self):
         if self.duration.size > 1:
-            posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data)
+            posterior_distributions = run_separate_sigma_model(rating_data=self.rating_data, duration=self.duration)
         else:
-            posterior_distributions = run_efficient_coding_model(rating_data=self.rating_data)
+            posterior_distributions = run_efficient_coding_model(rating_data=self.rating_data, duration=self.duration)
         self.s3_client.upload_pickle_to_s3(posterior_distributions, self.paths["posterior_distributions"])
         print(
             f"Processing posterior distributions for participant: {self.subject_id} and {self.emotion} and {self.duration} completed and results saved successfully.")
