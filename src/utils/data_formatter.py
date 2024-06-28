@@ -29,6 +29,7 @@ class DataFormatter:
                             "job_name": job_name,
                             "choice_data": False, #FIXME choice_data
                             "rating_data": rating_data,
+                            "duration": self.durations,  # Added duration to the combination
                             "run_name": self.run_name,
                             "run_choice": self.run_choice
                         })
@@ -50,6 +51,7 @@ class DataFormatter:
                                 "job_name": job_name,
                                 "choice_data": False,
                                 "rating_data": rating_data,
+                                "duration": duration,  # Added duration to the combination
                                 "run_name": self.run_name,
                                 "run_choice": self.run_choice
                             })

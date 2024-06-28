@@ -9,6 +9,7 @@ DURATIONS_MAPPING_DICT = {900: 0,
 
 
 def run_efficient_coding_model(rating_data, duration):  #use_mock_data=False
+    print("Running efficient coding model")
     results = {}
     try:
         # if use_mock_data:
@@ -93,6 +94,7 @@ def run_efficient_coding_model(rating_data, duration):  #use_mock_data=False
 
 
 def run_separate_sigma_model(rating_data, duration):
+    print("Running separate sigma model")
     results = {}
     try:
         rating_data, mu_empirical, s_empirical, num_videos = prepare_data_for_efficient_coding_all_emotions(rating_data,
