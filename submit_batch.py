@@ -6,13 +6,13 @@ from src.utils.s3_client import S3Client
 
 # Define constants
 DATA_PATH = './data/main_study/v2/rating_data_formatted.csv'  # Adjust this path
-JOB_NAME = 'main_study_v2_training'
+JOB_NAME = 'main_study_v2_training_long'
 JOB_QUEUE = 'MyJobQueue'
 JOB_DEFINITION = 'MyModelRunnerJob'
 EMOTIONS = ['joy', 'sadness', 'romance', 'disgust', 'anxiety']  # Example emotions
-DURATIONS = [900, 2600]  # Example durations
+DURATIONS = [2600]  # Example durations #2600
 PHASES = [1, 2]  # Example phases
-RUN_NAME = 'main_study_v2_training'  # Run name to be added for S3 key
+RUN_NAME = 'main_study_v2_training_long'  # Run name to be added for S3 key
 RUN_CHOICE = False  # Whether to run the choice model
 COMBINATIONS_KEY_S3 = f"{RUN_NAME}/combinations.json"
 
