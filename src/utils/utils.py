@@ -2,6 +2,7 @@ import concurrent.futures
 from multiprocessing import Manager
 import pickle
 import pandas as pd
+import numpy as np
 
 # Functions for efficient coding model
 def prepare_data_for_efficient_coding(rating_data, epsilon=1e-6):
@@ -62,7 +63,8 @@ def prepare_data_for_efficient_coding_all_emotions(rating_data, duration, epsilo
     print("the length of rating_data_emo is:", len(rating_data_emo))
 
     # Extract the number of videos
-    num_videos = len(rating_data_emo)
+    num_videos = len(np.unique(rating_data_emo["VIDEO_ID"]))
+    print(num_videos)
 
     print("Estimated Prior Mean:", mu_empirical)
     print("Estimated Prior Standard Deviation:", s_empirical)
