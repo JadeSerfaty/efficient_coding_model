@@ -23,3 +23,9 @@ newenv/
 *.env
 
 model_outputs/*
+
+*.png
+
+model_recovery_new_one_model_two_sigmas
+
+model_recovery_new_one_model_two_sigmas_two_obs
